@@ -209,7 +209,7 @@ class MigrationGenerator(object):
                     rollback.append('CREATE {}INDEX `{}` ON `{}`(`{}`);'.format(uni, idx, table, c))
             elif op == 'add':
                 t = sc
-                sqls.append('ALTER TABLE `{}` ADD `{}` `{}`;'.format(table, c, t))
+                sqls.append('ALTER TABLE `{}` ADD `{}` {};'.format(table, c, t))
                 rollback.append('ALTER TABLE `{}` DROP COLUMN `{}`;'.format(table, c))
         s = '\n'.join(sqls)
         r = '\n'.join(rollback)
@@ -229,7 +229,7 @@ class MigrationGenerator(object):
     def drop_columns(self, table, columns, schema, keys):
         s, r = self._columns_sql('drop', table, columns, schema, keys)
         if len(columns) == 1:
-            task = 'drop column: %s' % columns[0]
+            task = 'drop column: %s' % columns.pop()
             description = '<description>'
         else:
             task = 'drop %d columns' % len(columns)
@@ -450,15 +450,19 @@ class Migrate(object):
                     self.tables,
                     )
             print 'Applying snapshot'
-            apply_sql = """
-
+            create_table = """
             CREATE TABLE IF NOT EXISTS `_yoyo_migration` (
               `id` varchar(255) NOT NULL,
               `ctime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            """
 
+            delete_yoyo = """
             DELETE FROM `_yoyo_migration`;
+            """
+
+            apply_mig = """
             INSERT INTO `_yoyo_migration` 
               VALUES (
                 '{migration_id}',
@@ -468,9 +472,13 @@ class Migrate(object):
                     migration_id=mid,
                     timestamp=time.strftime('%Y-%m-%d %H:%M:%S'))
             cursor = self.connection.cursor()
-            cursor.execute(apply_sql)
-            cursor.close()
+            cursor.execute(create_table)
             self.connection.commit()
+            cursor.execute(delete_yoyo)
+            self.connection.commit()
+            cursor.execute(apply_mig)
+            self.connection.commit()
+            cursor.close()
         except Exception as e:
             logging.critical("Error returned by mysqldump")
             logging.exception(e)

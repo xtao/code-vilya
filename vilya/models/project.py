@@ -15,3 +15,10 @@ class Project(BaseModel):
     created_at = DateTimeField()
     updated_at = DateTimeField()
 
+    @property
+    def fullname(self):
+        return u'%s/%s' % (owner_name, name)
+
+    def __unicode__(self):
+        return unicode(self.fullname)
+

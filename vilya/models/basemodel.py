@@ -1,7 +1,8 @@
 from peewee import *
-from ..app import db
 from datetime import datetime
+from ..app import db
 
+from flask_peewee.db import Database
 
 class BaseModel(db.Model):
 

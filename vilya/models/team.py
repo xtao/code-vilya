@@ -10,3 +10,6 @@ class Team(BaseModel):
     creator = ForeignKeyField(User, related_name="teams")
     created_at = DateTimeField()
     updated_at = DateTimeField()
+
+    def __unicode__(self):
+        return unicode(self.name)

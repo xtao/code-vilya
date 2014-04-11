@@ -41,3 +41,6 @@ class CardList(BaseModel):
         if self.role==2:
             return Pull.select().where(Card.list_id==self.id)
         return []
+
+    def __unicode__(self):
+        return unicode(self.name)

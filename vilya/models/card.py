@@ -22,4 +22,7 @@ class Card(BaseModel):
     def can_close(self):
         return False
 
+    def __unicode__(self):
+        return u'#%d %s'  % (self.number, name)
+
 
