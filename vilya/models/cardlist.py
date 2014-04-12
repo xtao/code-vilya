@@ -6,6 +6,9 @@ from .card import Card
 from .pull import Pull
 from .project import Project
 
+NORMAL_ROLE = 0
+ISSUE_ROLE = 1
+PULL_ROLE = 2
 
 class CardList(BaseModel):
     creator = ForeignKeyField(User, related_name='created_lists')
@@ -15,11 +18,11 @@ class CardList(BaseModel):
     number = IntegerField(index=True)
     order = IntegerField(index=True)
     role = IntegerField(
-            default=0, 
+            default=NORMAL_ROLE, 
             choices=[
-                (0, 'normal'),
-                (1, 'issues'),
-                (2, 'pulls'),
+                (NORMAL_ROLE, 'normal'),
+                (ISSUE_ROLE, 'issues'),
+                (PULL_ROLE, 'pulls'),
                 ])
     is_archived = BooleanField(null=True)
     archiver = ForeignKeyField(User)

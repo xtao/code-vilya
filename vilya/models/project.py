@@ -15,6 +15,20 @@ class Project(BaseModel):
     created_at = DateTimeField()
     updated_at = DateTimeField()
 
+    def init_repo(self):
+        pass
+
+    def init_cardlists(self):
+        pass
+
+    def post_save(self):
+        self.init_repo()
+        self.init_cardlists()
+
+    @property
+    def repo(self):
+        pass
+
     @property
     def fullname(self):
         return u'%s/%s' % (owner_name, name)

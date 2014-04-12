@@ -10,6 +10,9 @@ docopt==0.6.1
 flask-peewee==0.6.5
 itsdangerous==0.24
 peewee==2.2.2
+pygit2==0.20.3
+wsgiauth==0.1
 wsgiref==0.1.2
 wtf-peewee==0.2.3
 yoyo-migrations==4.2.4
+-e git+https://github.com/douban/ellen.git@00adc6d64d0b1e302394cf6ed8e6408cce41089e#egg=ellen
