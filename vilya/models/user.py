@@ -12,6 +12,15 @@ class User(BaseModel, BaseUser):
     admin = BooleanField(default=True)
     active = BooleanField(default=True)
 
+    @classmethod
+    def authenticate(cls, username, password):
+        try:
+            user = cls.select().where(cls.username==username).get()
+            if user.check_password(password):
+                return user
+        except cls.DoesNotExist:
+            return None
+
     def __unicode__(self):
         return unicode(self.username)
 

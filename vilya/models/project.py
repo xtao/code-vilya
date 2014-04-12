@@ -19,6 +19,10 @@ class Project(BaseModel):
     def fullname(self):
         return u'%s/%s' % (owner_name, name)
 
+    @property
+    def path_info(self):
+        return '%s.git' % self.id
+
     def __unicode__(self):
         return unicode(self.fullname)
 

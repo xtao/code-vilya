@@ -2,8 +2,8 @@
 # encoding: utf-8
 
 # 
-# ID: 53481fdb__20140412_0101__snapshot
-# timpstamp: 2014-04-12 01:01:15
+# ID: 5348d992__20140412_1413__snapshot
+# timpstamp: 2014-04-12 14:13:38
 # -------------------------------
 # Snapshot: vilya
 # 
@@ -12,6 +12,7 @@
 #   card
 #   cardlist
 #   counter
+#   permission
 #   project
 #   pull
 #   team
@@ -97,6 +98,20 @@ CREATE TABLE `counter` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `permission`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `permission` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `perm_name` int(11) NOT NULL,
+  `target_id` int(11) NOT NULL,
+  `level` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `permission_user_id` (`user_id`),
+  CONSTRAINT `permission_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `project`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -168,7 +183,7 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_username` (`username`),
   KEY `user_email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

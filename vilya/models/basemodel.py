@@ -22,3 +22,12 @@ class BaseModel(db.Model):
             kwargs['created_at'] = now
         return super(BaseModel, cls).create(*args, **kwargs)
 
+    @property
+    def anonymous_perm(self):
+        return 1
+
+    @property
+    def perm_name(self):
+        return str(self.__class__.__name__).lower()
+
+
