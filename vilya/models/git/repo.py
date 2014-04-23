@@ -3,15 +3,13 @@ import os
 import gzip
 import shutil
 from cStringIO import StringIO
+from pygit2 import Repository, init_repository
 
-from ellen.repo import Jagare
-from ellen.utils import JagareError
-
-class GitRepo(Jagare):
+class GitRepo(Repository):
 
     @classmethod
-    def create(cls, path, work_path=None, bare=True):
-        Jagare.init(path, work_path, bare)
+    def create(cls, path, bare=True):
+        init_repository(path, bare=True)
         return cls.get(path=path)
 
     @classmethod
@@ -19,12 +17,15 @@ class GitRepo(Jagare):
         if os.path.isdir(path):
             return cls(path=path)
 
+    def get_obj(self, key):
+        return super(GitRepo, self).get(key)
+
     def delete(self):
         if os.path.isdir(path):
             shutil.rmtree(path)
 
     def archive(self):
-        content = super(Repo, self).archive()
+        content = self._jagare_repo.archive()
         outbuffer = StringIO()
         zipfile = gzip.GzipFile(mode='wb', compresslevel=6, fileobj=outbuffer)
         zipfile.writelines(content)
