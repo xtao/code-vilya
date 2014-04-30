@@ -10,7 +10,7 @@ docopt==0.6.1
 flask-peewee==0.6.5
 itsdangerous==0.24
 peewee==2.2.2
-pygit2==0.20.3
+-e git+https://github.com/douban/pygit2.git@c7b13237e9934b5620cf0c351ae7eaea7d14ffc3#egg=pygit2
 wsgiauth==0.1
 wsgiref==0.1.2
 wtf-peewee==0.2.3

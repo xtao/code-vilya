@@ -1,2 +1,10 @@
 WTF_CSRF_SECRET_KEY = "[REPLACE THIS WITH REAL KEY]"
 SECRET_KEY = "[REPLACE THIS WITH REAL KEY]"
+DATABASE = {
+    'name': 'vilya',
+    'engine': 'peewee.MySQLDatabase',
+    'user': 'root',
+    'passwd': '',
+}
+CACHE_TYPE = 'simple'
+MIGRATIONS_DIR = 'vilya/migrations'
