@@ -1,9 +1,27 @@
-
 import os
 import gzip
 import shutil
 from cStringIO import StringIO
-from pygit2 import Repository, init_repository
+from pygit2 import (
+        Repository,
+        init_repository,
+        clone_repository)
+
+from .objects import (
+        Reference,
+        Branch,
+        Tag,
+        Commit,
+        File,
+        )
+
+from .query import (
+        BranchQuery,
+        TagQuery,
+        CommitQuery,
+        )
+
+
 
 class GitRepo(Repository):
 
@@ -17,6 +35,12 @@ class GitRepo(Repository):
         if os.path.isdir(path):
             return cls(path=path)
 
+    @classmethod
+    def clone(cls, url, path, bare=False, **kwargs):
+        # TODO: switch to `git clone` for higher speed. 
+        repo = clone_repository(url, path, bare, **kwargs)
+        return cls(repo.path)
+        
     def get_obj(self, key):
         return super(GitRepo, self).get(key)
 
@@ -32,9 +56,6 @@ class GitRepo(Repository):
         zipfile.close()
         out = outbuffer.getvalue()
 
-    def clone(self, ref_obj):
-        pass
-
     @property
     def updated_at(self):
         commit = self.commits.get('HEAD')
@@ -44,19 +65,19 @@ class GitRepo(Repository):
 
     @property
     def commits(self):
-        pass
+        return CommitQuery(self, Commit) 
 
     @property
     def branches(self):
-        pass
+        return BranchQuery(self, Branch)
 
     @property
     def tags(self):
-        pass
+        return TagQuery(self, Tag)
 
     @property
     def head(self):
-        return self.commits.get('HEAD')
+        return self.commits.get(ref='HEAD')
 
     @property
     def files(self):

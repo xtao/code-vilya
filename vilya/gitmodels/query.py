@@ -3,6 +3,7 @@ import os
 from .objects import ObjectProxy
 from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
 from pygit2 import Tree
+
 class QueryKeyNotAccepted(Exception):
     def __init__(self, key):
         self._key = key
@@ -21,13 +22,13 @@ class Query(object):
 
     def get(self, **kwargs):
         raw_obj = self._get()
-        return self._cls(raw_obj) if raw_obj else None
+        return self._cls(self._repo, raw_obj) if raw_obj else None
 
     def all(self, **kwargs):
         iterator = self.where(**kwargs)._all()
         for obj in iterator:
             if obj:
-                yield self._cls(obj)
+                yield self._cls(self._repo, obj)
 
     def where(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -68,7 +69,7 @@ class Query(object):
             return obj_list[0]
 
     def _all(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __iter__(self):
         return self.all()
@@ -99,6 +100,11 @@ class BranchQuery(Query):
     def _get(self):
         repo = self._repo
         return repo.lookup_branch(self.name, self.filter)
+
+    def create(self, name, commit, force=False):
+        repo = self._repo
+        if repo.create_branch(name, commit, force)
+            return Branch(repo, repo.lookup_branch(name))
 
 
 class CommitQuery(Query):
@@ -132,6 +138,12 @@ class TagQuery(Query):
         repo = self._repo
         return repo.lookup_reference("refs/tags/" + self.name)
 
+    def create(self, name, commit, tagger, message):
+        oid = commit.id
+        repo = self._repo
+        tag_oid = repo.create_tag(name, oid, tagger, message)
+        return Tag(repo, repo.get(tag_oid))
+
 
 class FileQuery(Query):
 
@@ -139,10 +151,11 @@ class FileQuery(Query):
         path = self.path or ''
         commit = self.commit
         tree = commit.tree
-        if path:
-            path_components = os.path.split(path)
-            for component in path_components:
-                tree_entry = tree[component]
+        path_components = path.split(os.path.sep)
+        for component in path_components:
+            if not component: continue
+            tree_entry = tree.get(component)
+            if tree_entry:
                 obj = tree[tree_entry.id]
                 if isinstance(obj, Tree):
                     tree = obj
@@ -154,4 +167,8 @@ class FileQuery(Query):
 
     def _get(self):
         obj = self._all()
-        return obj[0]
+        return obj[0] if obj else None
+
+    @property
+    def root(self):
+        return self.get(path='')
