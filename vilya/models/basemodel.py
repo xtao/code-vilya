@@ -1,6 +1,6 @@
 from peewee import *
 from datetime import datetime
-from ..app import db
+from ..core import db
 
 from flask_peewee.db import Database
 

@@ -1,5 +1,6 @@
-from flask_peewee.auth import Auth as FPAuth
+# -*- coding: utf-8 -*-
 
+from flask_peewee.auth import Auth as FPAuth
 
 
 class Auth(FPAuth):
