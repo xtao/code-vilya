@@ -14,6 +14,19 @@ from .query import (
         FileQuery,
         )
 
+class InvalidProperty(Exception):
+
+    def __init__(self, name, detail=''):
+        self._name = name
+        self._detail = detail
+
+    def __unicode__(self):
+        desc = u"Invalid Property '%s'"
+        if self._detail:
+            desc += '(%s)' % self._detail
+        return desc
+
+
 class ObjectProxy(object):
 
     def __init__(self, repo, obj):
@@ -26,18 +39,8 @@ class ObjectProxy(object):
             setattr(self, key) = obj
         return obj
 
-
-class InvalidProperty(Exception):
-
-    def __init__(self, name, detail=''):
-        self._name = name
-        self._detail = detail
-
     def __unicode__(self):
-        desc = u"Invalid Property '%s'"
-        if self._detail:
-            desc += '(%s)' % self._detail
-        return desc
+        return unicode(self.id)
 
 
 class Reference(ObjectProxy):
@@ -52,9 +55,19 @@ class Reference(ObjectProxy):
         query = CommitQuery(self._repo, Commit)
         return query.where(ref=self.target)
 
+    def __unicode__(self):
+        return unicode(self.name)
+
 
 class Branch(Reference):
-    pass
+
+    def add_commit(self, author, email, message, tree):
+        return self.commits.create(
+                self._object,
+                self.commits.last,
+                author, email,
+                message,
+                tree)
 
 
 class Tag(Reference):
@@ -110,3 +123,4 @@ class File(ObjectProxy):
     def __getitem__(self, key):
         if self.isdir:
             return File(self._repo, self._object[key])
+

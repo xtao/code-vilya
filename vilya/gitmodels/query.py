@@ -1,8 +1,14 @@
 import re
 import os
 from .objects import ObjectProxy
-from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
-from pygit2 import Tree
+from pygit2 import (
+        GIT_SORT_TOPOLOGICAL,
+        GIT_BRANCH_LOCAL,
+        GIT_BRANCH_REMOTE)
+from pygit2 import (
+        Tree,
+        Signature,
+        )
 
 class QueryKeyNotAccepted(Exception):
     def __init__(self, key):
@@ -122,8 +128,27 @@ class CommitQuery(Query):
                 break
 
     def _get(self):
-        repo = self.repo
-        return  repo.revparse_single(self.ref)
+        if self.ref:
+            repo = self._repo
+            return  repo.revparse_single(self.ref)
+        else:
+            res = list(self.limit(1).all())
+            return res[0] if res else None
+
+    def create(self, ref, parent_commit, author, email, message, tree):
+        repo = self._repo
+        committer = Signature(author, email)
+        oid = repo.create_commit(
+                unicode(ref),
+                committer, committer,
+                message,
+                [unicode(parent_commit)])
+        return self.get(ref=oid)
+
+    @property
+    def last(self):
+        return self.limit(1).get()
+
 
 class TagQuery(Query):
     
