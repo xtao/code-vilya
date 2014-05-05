@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from flask.ext.script import Manager
-from vilya import app
+from app import app
 from scripts import register_commands
 
 manager = Manager(app)

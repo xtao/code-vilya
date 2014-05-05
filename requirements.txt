@@ -7,7 +7,7 @@ MySQL-python==1.2.5
 WTForms==1.0.5
 Werkzeug==0.9.4
 docopt==0.6.1
-flask-peewee==0.6.5
+-e git+https://github.com/xtao/flask-peewee.git@5fe732ce78a6704da1127faf34aad83819b774c6#egg=flask_peewee
 itsdangerous==0.24
 peewee==2.2.2
 -e git+https://github.com/douban/pygit2.git@c7b13237e9934b5620cf0c351ae7eaea7d14ffc3#egg=pygit2
