@@ -5,7 +5,7 @@ WTF_CSRF_SECRET_KEY = "[REPLACE THIS WITH REAL KEY]"
 SECRET_KEY = "[REPLACE THIS WITH REAL KEY]"
 
 DATABASE = {
-    'name': 'vilya',
+    'name': 'vilya-tests',
     'engine': 'peewee.MySQLDatabase',
     'user': 'root',
     'passwd': '',

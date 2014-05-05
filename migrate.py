@@ -3,15 +3,18 @@
 
 
 
-from docopt import docopt
-from yoyo.connections import connect
 import yoyo
 import subprocess
 import logging
 import re
 import os
 import time
-from vilya.app import app
+from vilya.frontend import create_app
+from docopt import docopt
+from yoyo.connections import connect
+
+app = create_app()
+
 logging.basicConfig(level=logging.INFO)
 
 def retab(docs):
@@ -360,12 +363,12 @@ class Migrate(object):
                 'host':'localhost',
                 'port':'',
                 'user':'root',
-                'password':'',
+                'passwd':'',
                 }
         db_config.update(app.config['DATABASE'])
 
-        if db_config['password']:
-            db_config['user'] += ':' + db_config['password'] 
+        if db_config['passwd']:
+            db_config['user'] += ':' + db_config['passwd'] 
         if db_config['port']:
             db_config['host'] += ':' + db_config['port'] 
 
