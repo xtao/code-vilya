@@ -21,8 +21,8 @@ def create_app(package_name, package_path, settings_override=None):
     app = Flask(package_name, instance_relative_config=True, instance_path=os.path.dirname(__file__))
 
     #app.config.from_object('vilya.settings')
-    app.config.from_pyfile("app.cfg")
-    app.config.from_pyfile("app-dev.cfg", silent=True)
+    app.config.from_pyfile("settings.py")
+    app.config.from_pyfile("settings-dev.py", silent=True)
     app.config.from_object(settings_override)
 
     db.init_app(app)

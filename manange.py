@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 from flask.ext.script import Manager
-from app import app
 from scripts import register_commands
+from wsgi import application
 
-manager = Manager(app)
+manager = Manager(application)
 register_commands(manager)
 
 if __name__ == "__main__":

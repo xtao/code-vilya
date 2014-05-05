@@ -53,5 +53,5 @@ coverage.xml
 docs/_build/
 
 # private file
-app.cfg
-app-dev.cfg
+settings.py
+settings-dev.py
