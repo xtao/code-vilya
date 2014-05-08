@@ -3,9 +3,9 @@
 from functools import wraps
 
 from flask import jsonify
-from flask_security import login_required
 
 from ..helpers import JSONEncoder
+from ..auth import Auth
 from .. import factory
 
 
@@ -20,6 +20,7 @@ def create_app(settings_override=None):
     # Register custom error handlers
     app.errorhandler(404)(on_404)
 
+    auth = Auth(app, core.db)
     return app
 
 
@@ -28,7 +29,6 @@ def route(bp, *args, **kwargs):
 
     def decorator(f):
         @bp.route(*args, **kwargs)
-        @login_required
         @wraps(f)
         def wrapper(*args, **kwargs):
             sc = 200
