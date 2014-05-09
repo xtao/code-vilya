@@ -2,7 +2,7 @@
 
 import os
 from flask import Flask
-from .core import db, cache
+from .core import db, cache, auth
 from .helpers import register_blueprints
 from .middleware import HTTPMethodOverrideMiddleware
 import gitmodels
@@ -29,6 +29,7 @@ def create_app(package_name, package_path, settings_override=None):
     db.init_app(app)
     cache.init_app(app)
     gitmodels.init_app(app)
+    auth.init_app(app, db)
 
     register_blueprints(app, package_name, package_path)
 
