@@ -6,7 +6,7 @@ from flask import jsonify
 
 from ..helpers import JSONEncoder
 from ..auth import Auth
-from .. import factory
+from .. import factory, core
 
 
 def create_app(settings_override=None):
