@@ -5,8 +5,7 @@ from functools import wraps
 from flask import jsonify
 
 from ..helpers import JSONEncoder
-from ..auth import Auth
-from .. import factory, core
+from .. import factory
 
 
 def create_app(settings_override=None):
@@ -20,7 +19,6 @@ def create_app(settings_override=None):
     # Register custom error handlers
     app.errorhandler(404)(on_404)
 
-    auth = Auth(app, core.db)
     return app
 
 

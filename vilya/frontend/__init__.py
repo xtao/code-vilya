@@ -2,15 +2,14 @@
 
 from functools import wraps
 from flask_peewee.admin import Admin
-from .. import factory, core
-from ..auth import Auth
+from .. import factory
+from ..core import auth
 from ..models import register_admin
 
 
 def create_app(settings_override=None):
     app = factory.create_app(__name__, __path__, settings_override)
 
-    auth = Auth(app, core.db)
     admin = Admin(app, auth)
     register_admin(admin)
     admin.setup()
