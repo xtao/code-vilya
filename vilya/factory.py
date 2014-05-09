@@ -5,6 +5,7 @@ from flask import Flask
 from .core import db, cache
 from .helpers import register_blueprints
 from .middleware import HTTPMethodOverrideMiddleware
+import gitmodels
 
 
 def create_app(package_name, package_path, settings_override=None):
@@ -21,12 +22,13 @@ def create_app(package_name, package_path, settings_override=None):
     app = Flask(package_name, instance_relative_config=True, instance_path=os.path.dirname(__file__))
 
     #app.config.from_object('vilya.settings')
-    app.config.from_pyfile("app.cfg")
-    app.config.from_pyfile("app-dev.cfg", silent=True)
+    app.config.from_pyfile("settings.py")
+    app.config.from_pyfile("settings-dev.py", silent=True)
     app.config.from_object(settings_override)
 
     db.init_app(app)
     cache.init_app(app)
+    gitmodels.init_app(app)
 
     register_blueprints(app, package_name, package_path)
 

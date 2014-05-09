@@ -2,8 +2,6 @@ from peewee import *
 from datetime import datetime
 from ..core import db
 
-from flask_peewee.db import Database
-
 class BaseModel(db.Model):
 
     @classmethod

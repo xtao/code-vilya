@@ -1,18 +1,21 @@
 Flask==0.10.1
 Flask-Cache==0.12
 Flask-Script==0.6.7
+Flask-WTF==0.9.5
 Jinja2==2.7.2
 MarkupSafe==0.19
 MySQL-python==1.2.5
 WTForms==1.0.5
 Werkzeug==0.9.4
 docopt==0.6.1
--e git+https://github.com/xtao/flask-peewee.git@5fe732ce78a6704da1127faf34aad83819b774c6#egg=flask_peewee
+-e git+https://github.com/douban/ellen.git@00adc6d64d0b1e302394cf6ed8e6408cce41089e#egg=ellen-master
+-e git+https://github.com/xtao/flask-peewee.git@5fe732ce78a6704da1127faf34aad83819b774c6#egg=flask_peewee-0.6.5
 itsdangerous==0.24
+nose==1.3.2
 peewee==2.2.2
--e git+https://github.com/douban/pygit2.git@c7b13237e9934b5620cf0c351ae7eaea7d14ffc3#egg=pygit2
+-e git+https://github.com/douban/pygit2.git@c7b13237e9934b5620cf0c351ae7eaea7d14ffc3#egg=pygit2-dev
+python-magic==0.4.6
 wsgiauth==0.1
 wsgiref==0.1.2
 wtf-peewee==0.2.3
 yoyo-migrations==4.2.4
--e git+https://github.com/douban/ellen.git@00adc6d64d0b1e302394cf6ed8e6408cce41089e#egg=ellen
