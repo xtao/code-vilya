@@ -4,6 +4,8 @@
 
 ![licence: BSD](http://img.shields.io/badge/licence-BSD-green.svg)
 
+[![Build Status](https://travis-ci.org/shanzi/code-vilya.svg?branch=master)](https://travis-ci.org/shanzi/code-vilya)
+
 code-vilya
 ==========
 
