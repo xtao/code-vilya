@@ -53,5 +53,5 @@ coverage.xml
 docs/_build/
 
 # private file
-settings.py
-settings-dev.py
+vilya/settings.py
+vilya/settings-dev.py
