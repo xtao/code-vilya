@@ -1,1 +1,11 @@
-Hello Vilya.
+{% extends "layouts/base.html" %}
+{% import "layouts/fixes.html" as fixes %}
+
+{% block content %}
+<h1>Hello Vilya.</h1>
+{%- endblock content %}
+
+{% block head %}
+{{ super() }}
+{{ fixes.ie8() }}
+{% endblock %}
