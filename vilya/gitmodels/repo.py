@@ -33,20 +33,14 @@ class GitRepo(Repository):
     @classmethod
     def get(cls, path):
         if os.path.isdir(path):
-            return cls(path=path)
+            return cls(path)
 
-    @classmethod
-    def clone(cls, url, path, bare=False, **kwargs):
-        # TODO: switch to `git clone` for higher speed. 
-        repo = clone_repository(url, path, bare, **kwargs)
-        return cls(repo.path)
-        
     def get_obj(self, key):
         return super(GitRepo, self).get(key)
 
     def delete(self):
-        if os.path.isdir(path):
-            shutil.rmtree(path)
+        if os.path.isdir(self.path):
+            shutil.rmtree(self.path)
 
     def archive(self):
         content = self._jagare_repo.archive()

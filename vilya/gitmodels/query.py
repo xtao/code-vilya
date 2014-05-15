@@ -1,6 +1,5 @@
 import re
 import os
-from .objects import ObjectProxy
 from pygit2 import (
         GIT_SORT_TOPOLOGICAL,
         GIT_BRANCH_LOCAL,
@@ -27,7 +26,7 @@ class Query(object):
         self._cls = cls
 
     def get(self, **kwargs):
-        raw_obj = self._get()
+        raw_obj = self.where(**kwargs)._get()
         return self._cls(self._repo, raw_obj) if raw_obj else None
 
     def all(self, **kwargs):
@@ -109,16 +108,18 @@ class BranchQuery(Query):
 
     def create(self, name, commit, force=False):
         repo = self._repo
-        if repo.create_branch(name, commit, force)
+        if repo.create_branch(name, commit, force):
             return Branch(repo, repo.lookup_branch(name))
 
 
 class CommitQuery(Query):
 
     def _all(self):
-        from_id = self.from_id or self._repo.head.target
+        if self._repo.is_empty:
+            return
+        from_id = self.from_id or self._repo.head.oid
         order_by = self.order or GIT_SORT_TOPOLOGICAL
-        walker =  self._repo.walk(from_id, order)
+        walker =  self._repo.walk(from_id, order_by)
         count = 0
         for commit in walker:
             if count >= self.skip_count:
@@ -130,7 +131,10 @@ class CommitQuery(Query):
     def _get(self):
         if self.ref:
             repo = self._repo
-            return  repo.revparse_single(self.ref)
+            try:
+                return repo.revparse_single(self.ref)
+            except KeyError as e:
+                return None
         else:
             res = list(self.limit(1).all())
             return res[0] if res else None
@@ -138,12 +142,14 @@ class CommitQuery(Query):
     def create(self, ref, parent_commit, author, email, message, tree):
         repo = self._repo
         committer = Signature(author, email)
+        p_commits = [unicode(parent_commit)] if parent_commit else []
         oid = repo.create_commit(
                 unicode(ref),
                 committer, committer,
                 message,
-                [unicode(parent_commit)])
-        return self.get(ref=oid)
+                tree,
+                p_commits)
+        return repo[oid]
 
     @property
     def last(self):

@@ -36,7 +36,7 @@ class ObjectProxy(object):
     def __getattr__(self, key):
         obj = getattr(self._object, key)
         if callable(obj):
-            setattr(self, key) = obj
+            setattr(self, key, obj)
         return obj
 
     def __unicode__(self):
@@ -117,8 +117,6 @@ class File(ObjectProxy):
         if self.isdir:
             for entry in self._object:
                 yield File(self._repo, entry)
-        else:
-            return []
 
     def __getitem__(self, key):
         if self.isdir:
