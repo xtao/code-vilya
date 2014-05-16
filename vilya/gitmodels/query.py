@@ -1,7 +1,9 @@
 import re
 import os
 from pygit2 import (
+        GIT_OBJ_COMMIT,
         GIT_SORT_TOPOLOGICAL,
+        GIT_SORT_TIME,
         GIT_BRANCH_LOCAL,
         GIT_BRANCH_REMOTE)
 from pygit2 import (
@@ -35,6 +37,9 @@ class Query(object):
             if obj:
                 yield self._cls(self._repo, obj)
 
+    def count(self):
+        return len(list(self._all()))
+
     def where(self, **kwargs):
         for k, v in kwargs.iteritems():
             self._setq(k, v)
@@ -50,7 +55,7 @@ class Query(object):
 
     def skip(self, number):
         self._setq('skip_count', number)
-        return skip
+        return self
 
     def _qname(self, name):
         escaped = re.sub(r'[^a-zA-Z0-9]+','_',name)
@@ -84,6 +89,12 @@ class Query(object):
             return super(Query, self).__getattr__(key)
         return self._getq(key)
 
+    def __len__(self):
+        return self.count()
+
+    def __bool__(self):
+        return bool(self.count())
+
 
 class BranchQuery(Query):
 
@@ -94,13 +105,14 @@ class BranchQuery(Query):
             filter_ |= GIT_BRANCH_REMOTE
         if self.local or filter_==0:
             filter_ |= GIT_BRANCH_LOCAL
+        return filter_
 
     def _all(self):
         repo = self._repo
         filter_ = self.filter
         branches = repo.listall_branches(filter_)
         for branch in branches:
-            yield repo.lookup_branch(filter_)
+            yield repo.lookup_branch(branch)
 
     def _get(self):
         repo = self._repo
@@ -108,8 +120,8 @@ class BranchQuery(Query):
 
     def create(self, name, commit, force=False):
         repo = self._repo
-        if repo.create_branch(name, commit, force):
-            return Branch(repo, repo.lookup_branch(name))
+        if repo.create_branch(name, commit._object, force):
+            return self._cls(repo, repo.lookup_branch(name))
 
 
 class CommitQuery(Query):
@@ -121,18 +133,20 @@ class CommitQuery(Query):
         order_by = self.order or GIT_SORT_TOPOLOGICAL
         walker =  self._repo.walk(from_id, order_by)
         count = 0
+        limit_count = self.limit_count or 0
+        skip_count = self.skip_count or 0
         for commit in walker:
             if count >= self.skip_count:
                 yield commit
             count +=1
-            if self.limit and count >= self.limit:
-                break
+            if limit_count > 0 and count >= limit_count + skip_count:
+                return
 
     def _get(self):
         if self.ref:
             repo = self._repo
             try:
-                return repo.revparse_single(self.ref)
+                return repo.revparse_single(unicode(self.ref))
             except KeyError as e:
                 return None
         else:
@@ -142,14 +156,14 @@ class CommitQuery(Query):
     def create(self, ref, parent_commit, author, email, message, tree):
         repo = self._repo
         committer = Signature(author, email)
-        p_commits = [unicode(parent_commit)] if parent_commit else []
+        p_commits = [unicode(parent_commit), ] if parent_commit else []
         oid = repo.create_commit(
                 unicode(ref),
                 committer, committer,
                 message,
                 tree,
                 p_commits)
-        return repo[oid]
+        return self._cls(repo, repo[oid])
 
     @property
     def last(self):
@@ -167,13 +181,17 @@ class TagQuery(Query):
 
     def _get(self):
         repo = self._repo
-        return repo.lookup_reference("refs/tags/" + self.name)
+        try:
+            return repo.lookup_reference("refs/tags/" + self.name)
+        except KeyError as e:
+            return None
 
-    def create(self, name, commit, tagger, message):
-        oid = commit.id
+    def create(self, name, commit, tagger_name, email,  message):
+        oid = commit.oid
         repo = self._repo
-        tag_oid = repo.create_tag(name, oid, tagger, message)
-        return Tag(repo, repo.get(tag_oid))
+        tagger = Signature(tagger_name, email)
+        tag_oid = repo.create_tag(name, oid, GIT_OBJ_COMMIT, tagger, message)
+        return self._cls(repo, repo[tag_oid])
 
 
 class FileQuery(Query):

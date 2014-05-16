@@ -1,5 +1,6 @@
 from pygit2 import (
         Object,
+        Signature,
         Tree,
         TreeEntry,
         )
@@ -40,7 +41,16 @@ class ObjectProxy(object):
         return obj
 
     def __unicode__(self):
-        return unicode(self.id)
+        return unicode(self.oid.hex)
+
+    def __eq__(self, obj):
+        try:
+            return self.oid.hex == obj.oid.hex
+        except:
+            return False
+
+    def __bool__(self):
+        return True if self._object else False
 
 
 class Reference(ObjectProxy):
@@ -53,22 +63,22 @@ class Reference(ObjectProxy):
     @property
     def commits(self):
         query = CommitQuery(self._repo, Commit)
-        return query.where(ref=self.target)
+        return query.where(from_id=self.target)
 
     def __unicode__(self):
         return unicode(self.name)
 
 
 class Branch(Reference):
-
+    
     def add_commit(self, author, email, message, tree):
-        return self.commits.create(
-                self._object,
-                self.commits.last,
-                author, email,
-                message,
+        commit = self.commits.create(
+                self.name,
+                self.commits.last.hex,
+                author, email, message,
                 tree)
-
+        self._object = self._repo.lookup_branch(self.shorthand)
+        return commit
 
 class Tag(Reference):
     pass
@@ -80,6 +90,9 @@ class Commit(ObjectProxy):
     def files(self):
         query = FileQuery(self._repo, File)
         return query.where(commit=self._object)
+
+    def __unicode__(self):
+        return self._object.hex
 
 
 class File(ObjectProxy):
