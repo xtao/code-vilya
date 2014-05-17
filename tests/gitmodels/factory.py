@@ -15,10 +15,10 @@ def create_repo(git_root, empty=True):
 
 def random_file_line(length=64):
     char_range = range(32, 128)
-    return ''.join([chr(random.choice(char_range)) for x in range(length)])
+    return ''.join(chr(random.choice(char_range)) for x in range(length))
 
 def random_file_content(lines=10, line_len=64):
-    return '\n'.join([random_file_line(line_len) for x in range(lines)])
+    return '\n'.join(random_file_line(line_len) for x in range(lines))
 
 def create_tree(repo, structure=None):
     if not structure:
