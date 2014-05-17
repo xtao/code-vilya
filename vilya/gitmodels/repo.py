@@ -75,5 +75,5 @@ class GitRepo(Repository):
 
     @property
     def files(self):
-        return self.head.files()
+        return self.head.files
 

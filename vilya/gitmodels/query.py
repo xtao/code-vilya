@@ -1,7 +1,6 @@
 import re
 import os
 from pygit2 import (
-        GIT_OBJ_COMMIT,
         GIT_SORT_TOPOLOGICAL,
         GIT_SORT_TIME,
         GIT_BRANCH_LOCAL,
@@ -186,37 +185,35 @@ class TagQuery(Query):
         except KeyError as e:
             return None
 
-    def create(self, name, commit, tagger_name, email,  message):
-        oid = commit.oid
+    def create(self, name, obj, tagger_name, email,  message):
+        oid = obj.oid
+        type_ = obj.type
         repo = self._repo
         tagger = Signature(tagger_name, email)
-        tag_oid = repo.create_tag(name, oid, GIT_OBJ_COMMIT, tagger, message)
+        tag_oid = repo.create_tag(name, oid, type_, tagger, message)
         return self._cls(repo, repo[tag_oid])
 
 
 class FileQuery(Query):
 
     def _all(self):
+        f = self._get()
+        if f:
+            return list(f)
+        else:
+            return []
+
+    def _get(self):
         path = self.path or ''
         commit = self.commit
         tree = commit.tree
-        path_components = path.split(os.path.sep)
-        for component in path_components:
-            if not component: continue
-            tree_entry = tree.get(component)
-            if tree_entry:
-                obj = tree[tree_entry.id]
-                if isinstance(obj, Tree):
-                    tree = obj
-                elif component == path_components[-1]:
-                    return [obj, ]
-                else:
-                    return []
-        return [tree, ]
-
-    def _get(self):
-        obj = self._all()
-        return obj[0] if obj else None
+        if not path:
+            return tree
+        else:
+            try:
+                return tree[path]
+            except KeyError as e:
+                return None
 
     @property
     def root(self):

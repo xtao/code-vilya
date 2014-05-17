@@ -99,32 +99,19 @@ class File(ObjectProxy):
 
     def __init__(self, repo, obj):
         if isinstance(obj, TreeEntry):
-            obj = repo[obj.id]
+            self.name = obj.name
+            self.filemode = obj.filemode
+            obj = repo[obj.oid]
         return super(File, self).__init__(repo, obj)
 
-    @property
     def isdir(self):
         return isinstance(self._object, Tree)
 
-    @property
     def isfile(self):
-        return not self.isdir
+        return not self.isdir()
 
     def listdir(self):
         return list(self)
-
-    def create_file(self, name, data=''):
-        if not name:
-            raise InvalidProperty('name', 'is empty')
-        if self.isdir:
-            repo = self._repo
-            blob_id = repo.create_blob(data)
-            if blob_id:
-                treebuilder = repo.TreeBuilder(self._object)
-                treebuilder.insert(name, blob_id, GIT_FILEMODE_BLOB)
-                oid = treebuilder.write()
-                self._object = repo.get(oid)
-                return repo.get(blob_id)
 
     def __iter__(self):
         if self.isdir:

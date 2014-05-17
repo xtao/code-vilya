@@ -178,3 +178,32 @@ class ModelTestCase(GitModelTestCase):
             tag = repo.tags.get(name=name)
             assert tag == None
             assert len(repo.tags) == 5 - (i/2 + 1)
+            
+    def test_files(self):
+        repo = self.repo
+        tree, structure = factory.create_tree(repo)
+        factory.create_commit(repo, tree=tree)
+
+        files = repo.files
+        def walk_structure(name, value, path):
+            path = os.path.join(path, name)
+            f = files.get(path=path)
+            if isinstance(value, dict):
+                assert f.isdir()
+                assert not f.isfile()
+                # test list dir
+                dirs = f.listdir()
+                file_names = [f.name for f in dirs]
+                for k, v in value.iteritems():
+                    walk_structure(k, v, path)
+            else:
+                assert f.isfile()
+                assert not f.isdir()
+                # test file content
+                assert f.data == value
+
+        walk_structure('', structure, '')
+
+        # test unexists paths
+        f = files.get(path='some/unexists/path')
+        assert not f
