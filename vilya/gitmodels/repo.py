@@ -1,9 +1,27 @@
-
 import os
 import gzip
 import shutil
 from cStringIO import StringIO
-from pygit2 import Repository, init_repository
+from pygit2 import (
+        Repository,
+        init_repository,
+        clone_repository)
+
+from .objects import (
+        Reference,
+        Branch,
+        Tag,
+        Commit,
+        File,
+        )
+
+from .query import (
+        BranchQuery,
+        TagQuery,
+        CommitQuery,
+        )
+
+
 
 class GitRepo(Repository):
 
@@ -15,14 +33,14 @@ class GitRepo(Repository):
     @classmethod
     def get(cls, path):
         if os.path.isdir(path):
-            return cls(path=path)
+            return cls(path)
 
     def get_obj(self, key):
         return super(GitRepo, self).get(key)
 
     def delete(self):
-        if os.path.isdir(path):
-            shutil.rmtree(path)
+        if os.path.isdir(self.path):
+            shutil.rmtree(self.path)
 
     def archive(self):
         content = self._jagare_repo.archive()
@@ -31,9 +49,6 @@ class GitRepo(Repository):
         zipfile.writelines(content)
         zipfile.close()
         out = outbuffer.getvalue()
-
-    def clone(self, ref_obj):
-        pass
 
     @property
     def updated_at(self):
@@ -44,21 +59,21 @@ class GitRepo(Repository):
 
     @property
     def commits(self):
-        pass
+        return CommitQuery(self, Commit) 
 
     @property
     def branches(self):
-        pass
+        return BranchQuery(self, Branch)
 
     @property
     def tags(self):
-        pass
+        return TagQuery(self, Tag)
 
     @property
     def head(self):
-        return self.commits.get('HEAD')
+        return self.commits.get(ref='HEAD')
 
     @property
     def files(self):
-        return self.head.files()
+        return self.head.files
 

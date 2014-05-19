@@ -25,6 +25,7 @@ class VilyaTestCase(TestCase):
 
     def setUp(self):
         super(VilyaTestCase, self).setUp()
+        self._settings = settings
         self._init_git_env()
 
     def tearDown(self):

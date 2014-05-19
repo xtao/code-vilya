@@ -1,8 +1,15 @@
 import re
 import os
-from .objects import ObjectProxy
-from pygit2 import GIT_SORT_TOPOLOGICAL, GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
-from pygit2 import Tree
+from pygit2 import (
+        GIT_SORT_TOPOLOGICAL,
+        GIT_SORT_TIME,
+        GIT_BRANCH_LOCAL,
+        GIT_BRANCH_REMOTE)
+from pygit2 import (
+        Tree,
+        Signature,
+        )
+
 class QueryKeyNotAccepted(Exception):
     def __init__(self, key):
         self._key = key
@@ -20,14 +27,17 @@ class Query(object):
         self._cls = cls
 
     def get(self, **kwargs):
-        raw_obj = self._get()
-        return self._cls(raw_obj) if raw_obj else None
+        raw_obj = self.where(**kwargs)._get()
+        return self._cls(self._repo, raw_obj) if raw_obj else None
 
     def all(self, **kwargs):
         iterator = self.where(**kwargs)._all()
         for obj in iterator:
             if obj:
-                yield self._cls(obj)
+                yield self._cls(self._repo, obj)
+
+    def count(self):
+        return len(list(self._all()))
 
     def where(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -44,7 +54,7 @@ class Query(object):
 
     def skip(self, number):
         self._setq('skip_count', number)
-        return skip
+        return self
 
     def _qname(self, name):
         escaped = re.sub(r'[^a-zA-Z0-9]+','_',name)
@@ -68,7 +78,7 @@ class Query(object):
             return obj_list[0]
 
     def _all(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __iter__(self):
         return self.all()
@@ -77,6 +87,12 @@ class Query(object):
         if key.startswith('_'):
             return super(Query, self).__getattr__(key)
         return self._getq(key)
+
+    def __len__(self):
+        return self.count()
+
+    def __bool__(self):
+        return bool(self.count())
 
 
 class BranchQuery(Query):
@@ -88,36 +104,70 @@ class BranchQuery(Query):
             filter_ |= GIT_BRANCH_REMOTE
         if self.local or filter_==0:
             filter_ |= GIT_BRANCH_LOCAL
+        return filter_
 
     def _all(self):
         repo = self._repo
         filter_ = self.filter
         branches = repo.listall_branches(filter_)
         for branch in branches:
-            yield repo.lookup_branch(filter_)
+            yield repo.lookup_branch(branch)
 
     def _get(self):
         repo = self._repo
         return repo.lookup_branch(self.name, self.filter)
 
+    def create(self, name, commit, force=False):
+        repo = self._repo
+        if repo.create_branch(name, commit._object, force):
+            return self._cls(repo, repo.lookup_branch(name))
+
 
 class CommitQuery(Query):
 
     def _all(self):
-        from_id = self.from_id or self._repo.head.target
+        if self._repo.is_empty:
+            return
+        from_id = self.from_id or self._repo.head.oid
         order_by = self.order or GIT_SORT_TOPOLOGICAL
-        walker =  self._repo.walk(from_id, order)
+        walker =  self._repo.walk(from_id, order_by)
         count = 0
+        limit_count = self.limit_count or 0
+        skip_count = self.skip_count or 0
         for commit in walker:
             if count >= self.skip_count:
                 yield commit
             count +=1
-            if self.limit and count >= self.limit:
-                break
+            if limit_count > 0 and count >= limit_count + skip_count:
+                return
 
     def _get(self):
-        repo = self.repo
-        return  repo.revparse_single(self.ref)
+        if self.ref:
+            repo = self._repo
+            try:
+                return repo.revparse_single(unicode(self.ref))
+            except KeyError as e:
+                return None
+        else:
+            res = list(self.limit(1).all())
+            return res[0] if res else None
+
+    def create(self, ref, parent_commit, author, email, message, tree):
+        repo = self._repo
+        committer = Signature(author, email)
+        p_commits = [unicode(parent_commit), ] if parent_commit else []
+        oid = repo.create_commit(
+                unicode(ref),
+                committer, committer,
+                message,
+                tree,
+                p_commits)
+        return self._cls(repo, repo[oid])
+
+    @property
+    def last(self):
+        return self.limit(1).get()
+
 
 class TagQuery(Query):
     
@@ -130,28 +180,41 @@ class TagQuery(Query):
 
     def _get(self):
         repo = self._repo
-        return repo.lookup_reference("refs/tags/" + self.name)
+        try:
+            return repo.lookup_reference("refs/tags/" + self.name)
+        except KeyError as e:
+            return None
+
+    def create(self, name, obj, tagger_name, email,  message):
+        oid = obj.oid
+        type_ = obj.type
+        repo = self._repo
+        tagger = Signature(tagger_name, email)
+        tag_oid = repo.create_tag(name, oid, type_, tagger, message)
+        return self._cls(repo, repo[tag_oid])
 
 
 class FileQuery(Query):
 
     def _all(self):
+        f = self._get()
+        if f:
+            return list(f)
+        else:
+            return []
+
+    def _get(self):
         path = self.path or ''
         commit = self.commit
         tree = commit.tree
-        if path:
-            path_components = os.path.split(path)
-            for component in path_components:
-                tree_entry = tree[component]
-                obj = tree[tree_entry.id]
-                if isinstance(obj, Tree):
-                    tree = obj
-                elif component == path_components[-1]:
-                    return [obj, ]
-                else:
-                    return []
-        return [tree, ]
+        if not path:
+            return tree
+        else:
+            try:
+                return tree[path]
+            except KeyError as e:
+                return None
 
-    def _get(self):
-        obj = self._all()
-        return obj[0]
+    @property
+    def root(self):
+        return self.get(path='')
