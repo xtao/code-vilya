@@ -1,19 +1,20 @@
+# -*- coding: utf-8 -*-
 from pygit2 import (
-        Object,
-        Signature,
-        Tree,
-        TreeEntry,
-        )
+    Object,
+    Signature,
+    Tree,
+    TreeEntry,
+)
 from pygit2 import (
-        GIT_REF_SYMBOLIC,
-        GIT_FILEMODE_BLOB,
-        )
-
+    GIT_REF_SYMBOLIC,
+    GIT_FILEMODE_BLOB,
+)
 from .query import (
-        CommitQuery,
-        BranchQuery,
-        FileQuery,
-        )
+    CommitQuery,
+    BranchQuery,
+    FileQuery,
+)
+
 
 class InvalidProperty(Exception):
 
@@ -70,15 +71,16 @@ class Reference(ObjectProxy):
 
 
 class Branch(Reference):
-    
+
     def add_commit(self, author, email, message, tree):
         commit = self.commits.create(
-                self.name,
-                self.commits.last.hex,
-                author, email, message,
-                tree)
+            self.name,
+            self.commits.last.hex,
+            author, email, message,
+            tree)
         self._object = self._repo.lookup_branch(self.shorthand)
         return commit
+
 
 class Tag(Reference):
     pass
@@ -121,4 +123,3 @@ class File(ObjectProxy):
     def __getitem__(self, key):
         if self.isdir:
             return File(self._repo, self._object[key])
-

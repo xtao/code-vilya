@@ -1,26 +1,25 @@
+# -*- coding: utf-8 -*-
 import os
 import gzip
 import shutil
 from cStringIO import StringIO
 from pygit2 import (
-        Repository,
-        init_repository,
-        clone_repository)
-
+    Repository,
+    init_repository,
+    clone_repository
+)
 from .objects import (
-        Reference,
-        Branch,
-        Tag,
-        Commit,
-        File,
-        )
-
+    Reference,
+    Branch,
+    Tag,
+    Commit,
+    File,
+)
 from .query import (
-        BranchQuery,
-        TagQuery,
-        CommitQuery,
-        )
-
+    BranchQuery,
+    TagQuery,
+    CommitQuery,
+)
 
 
 class GitRepo(Repository):
@@ -49,6 +48,7 @@ class GitRepo(Repository):
         zipfile.writelines(content)
         zipfile.close()
         out = outbuffer.getvalue()
+        return out
 
     @property
     def updated_at(self):
@@ -59,7 +59,7 @@ class GitRepo(Repository):
 
     @property
     def commits(self):
-        return CommitQuery(self, Commit) 
+        return CommitQuery(self, Commit)
 
     @property
     def branches(self):
@@ -76,4 +76,3 @@ class GitRepo(Repository):
     @property
     def files(self):
         return self.head.files
-

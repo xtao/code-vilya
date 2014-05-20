@@ -1,22 +1,25 @@
+# -*- coding: utf-8 -*-
 import re
-import os
 from pygit2 import (
-        GIT_SORT_TOPOLOGICAL,
-        GIT_SORT_TIME,
-        GIT_BRANCH_LOCAL,
-        GIT_BRANCH_REMOTE)
+    GIT_SORT_TOPOLOGICAL,
+    GIT_SORT_TIME,
+    GIT_BRANCH_LOCAL,
+    GIT_BRANCH_REMOTE
+)
 from pygit2 import (
-        Tree,
-        Signature,
-        )
+    Tree,
+    Signature,
+)
+
 
 class QueryKeyNotAccepted(Exception):
+
     def __init__(self, key):
         self._key = key
 
     def __unicode__(self):
         return u"Query key not accepted: %s" % self._key
-        
+
 
 class Query(object):
 
@@ -57,7 +60,7 @@ class Query(object):
         return self
 
     def _qname(self, name):
-        escaped = re.sub(r'[^a-zA-Z0-9]+','_',name)
+        escaped = re.sub(r'[^a-zA-Z0-9]+', '_', name)
         return ('_ref_query_%s' % escaped)
 
     def _setq(self, key, value):
@@ -68,7 +71,7 @@ class Query(object):
         setattr(self, qname, value)
 
     def _getq(self, key):
-        qname = self._qname(key) 
+        qname = self._qname(key)
         if hasattr(self, qname):
             return getattr(self, qname)
 
@@ -102,7 +105,7 @@ class BranchQuery(Query):
         filter_ = 0
         if self.remote:
             filter_ |= GIT_BRANCH_REMOTE
-        if self.local or filter_==0:
+        if self.local or filter_ == 0:
             filter_ |= GIT_BRANCH_LOCAL
         return filter_
 
@@ -130,14 +133,14 @@ class CommitQuery(Query):
             return
         from_id = self.from_id or self._repo.head.oid
         order_by = self.order or GIT_SORT_TOPOLOGICAL
-        walker =  self._repo.walk(from_id, order_by)
+        walker = self._repo.walk(from_id, order_by)
         count = 0
         limit_count = self.limit_count or 0
         skip_count = self.skip_count or 0
         for commit in walker:
             if count >= self.skip_count:
                 yield commit
-            count +=1
+            count += 1
             if limit_count > 0 and count >= limit_count + skip_count:
                 return
 
@@ -157,11 +160,11 @@ class CommitQuery(Query):
         committer = Signature(author, email)
         p_commits = [unicode(parent_commit), ] if parent_commit else []
         oid = repo.create_commit(
-                unicode(ref),
-                committer, committer,
-                message,
-                tree,
-                p_commits)
+            unicode(ref),
+            committer, committer,
+            message,
+            tree,
+            p_commits)
         return self._cls(repo, repo[oid])
 
     @property
@@ -170,7 +173,7 @@ class CommitQuery(Query):
 
 
 class TagQuery(Query):
-    
+
     def _all(self):
         repo = self._repo
         refs = repo.listall_references()
